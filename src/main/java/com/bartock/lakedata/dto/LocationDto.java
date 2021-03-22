@@ -16,7 +16,7 @@ public class LocationDto {
     private String name;
     @JsonInclude(Include.NON_NULL)
     private Double latitude;
-    @JsonInclude(Include.NON_NULL)
+    @JsonInclude(Include.NON_EMPTY)
     private Double longitude;
     private List<MeasurementDto> measurements;
 

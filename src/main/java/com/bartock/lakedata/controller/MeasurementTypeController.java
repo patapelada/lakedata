@@ -5,12 +5,13 @@ import java.util.List;
 import javax.validation.Valid;
 
 import com.bartock.lakedata.dto.MeasurementTypeDto;
+import com.bartock.lakedata.security.IsAdmin;
+import com.bartock.lakedata.security.IsMeasurementProvider;
 import com.bartock.lakedata.service.MeasurementTypeService;
 import com.google.common.base.Preconditions;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -25,7 +26,6 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 
 @RestController
-@CrossOrigin("http://localhost:4200")
 @RequestMapping("/api/measurementType")
 public class MeasurementTypeController extends AbstractRestController {
 
@@ -40,12 +40,14 @@ public class MeasurementTypeController extends AbstractRestController {
 
     @GetMapping
     @Operation(summary = "Get all measurement types")
+    @IsMeasurementProvider
     public List<MeasurementTypeDto> findAll() {
         return measurementTypeService.getAllMeasurementTypes();
     }
 
     @GetMapping(value = "/{id}")
     @Operation(summary = "Get a measurement type by its identifier")
+    @IsMeasurementProvider
     public MeasurementTypeDto findById(
             @PathVariable("id") @Parameter(description = "identifier of type to be searched") String id) {
         verifyExistence(id);
@@ -56,6 +58,7 @@ public class MeasurementTypeController extends AbstractRestController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     @Operation(summary = "Create a measurement type")
+    @IsAdmin
     public MeasurementTypeDto create(@RequestBody @Valid MeasurementTypeDto measurementType) {
         return Preconditions.checkNotNull(measurementTypeService.saveMeasurementType(measurementType));
     }
@@ -63,6 +66,7 @@ public class MeasurementTypeController extends AbstractRestController {
     @PutMapping(value = "/{id}")
     @ResponseStatus(HttpStatus.OK)
     @Operation(summary = "Update a measurement type by its identifier")
+    @IsAdmin
     public void update(@PathVariable("id") @Parameter(description = "identifier of type to be searched") String id,
             @RequestBody @Valid MeasurementTypeDto measurementType) {
         verifyExistence(id);
@@ -72,6 +76,7 @@ public class MeasurementTypeController extends AbstractRestController {
     @DeleteMapping(value = "/{id}")
     @ResponseStatus(HttpStatus.OK)
     @Operation(summary = "Delete a measurement type by its identifier")
+    @IsAdmin
     public void delete(@PathVariable("id") @Parameter(description = "identifier of type to be searched") String id) {
         verifyExistence(id);
         measurementTypeService.deleteMeasurementType(id);

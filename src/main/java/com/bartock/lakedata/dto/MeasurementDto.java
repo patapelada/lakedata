@@ -8,6 +8,7 @@ import com.bartock.lakedata.jackson.MeasurementTypeDeserializer;
 import com.bartock.lakedata.jackson.MeasurementTypeSerializer;
 import com.bartock.lakedata.jackson.ZonedDateTimeDeserializer;
 import com.bartock.lakedata.jackson.ZonedDateTimeSerializer;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
@@ -23,6 +24,7 @@ public class MeasurementDto {
     @JsonDeserialize(using = ZonedDateTimeDeserializer.class)
     @JsonSerialize(using = ZonedDateTimeSerializer.class)
     private ZonedDateTime timestamp;
+    @JsonIgnore
     private LocationDto location;
 
     public MeasurementDto() {

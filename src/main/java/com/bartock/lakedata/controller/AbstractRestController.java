@@ -4,6 +4,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.bartock.lakedata.security.UnauthorizedException;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -26,6 +28,15 @@ public abstract class AbstractRestController {
     protected Map<String, String> handleAssertExceptions(Exception ex) {
         Map<String, String> result = new HashMap<>();
         result.put("errors", ex.getMessage());
+
+        return result;
+    }
+
+    @ResponseStatus(HttpStatus.UNAUTHORIZED)
+    @ExceptionHandler({ UnauthorizedException.class })
+    protected Map<String, String> handleUnauthorizedExceptions(Exception ex) {
+        Map<String, String> result = new HashMap<>();
+        result.put("error", ex.getMessage());
 
         return result;
     }

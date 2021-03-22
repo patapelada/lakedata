@@ -9,6 +9,7 @@ import javax.validation.constraints.NotNull;
 public class Location {
 
     @Id
+    @Column(name = "location_id")
     private String id;
     @NotNull
     @Column(nullable = false)
