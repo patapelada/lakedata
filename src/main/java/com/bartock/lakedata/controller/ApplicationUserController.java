@@ -21,12 +21,12 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import com.bartock.lakedata.security.IsAdmin;
 
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
+import lombok.extern.slf4j.Slf4j;
 
 @RestController
 @RequestMapping("/api/user")
 @IsAdmin
+@Slf4j
 public class ApplicationUserController extends AbstractRestController {
 
     @Autowired
@@ -39,40 +39,36 @@ public class ApplicationUserController extends AbstractRestController {
     }
 
     @GetMapping
-    @Operation(summary = "Get all users")
     public List<ApplicationUserDto> findAll() {
         return applicationUserService.getAllApplicationUsers();
     }
 
     @GetMapping(value = "/{id}")
-    @Operation(summary = "Get a user by its identifier")
-    public ApplicationUserDto findById(
-            @PathVariable("id") @Parameter(description = "identifier of user to be searched") Integer id) {
+    public ApplicationUserDto findById(@PathVariable("id") Integer id) {
         verifyExistence(id);
         return applicationUserService.getApplicationUser(id);
     }
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    @Operation(summary = "Create a user")
     public ApplicationUserDto create(@RequestBody @Valid ApplicationUserDto applicationUser) {
+        log.info("requested to create user: {}", applicationUser);
         return Preconditions.checkNotNull(applicationUserService.saveApplicationUser(applicationUser));
     }
 
     @PutMapping(value = "/{id}")
     @ResponseStatus(HttpStatus.OK)
-    @Operation(summary = "Update a user by its identifier")
-    public void update(@PathVariable("id") @Parameter(description = "identifier of user to be updated") Integer id,
-            @RequestBody @Valid ApplicationUserDto applicationUser) {
+    public void update(@PathVariable("id") Integer id, @RequestBody @Valid ApplicationUserDto applicationUser) {
         verifyExistence(id);
+        log.info("requested to update user to: {}", applicationUser);
         applicationUserService.saveApplicationUser(applicationUser);
     }
 
     @DeleteMapping(value = "/{id}")
     @ResponseStatus(HttpStatus.OK)
-    @Operation(summary = "Delete a measurement type by its identifier")
-    public void delete(@PathVariable("id") @Parameter(description = "identifier of type to be deleted") Integer id) {
+    public void delete(@PathVariable("id") Integer id) {
         verifyExistence(id);
+        log.info("requested to delete user: {}", id);
         applicationUserService.deleteApplicationUser(id);
     }
 

@@ -1,5 +1,6 @@
 package com.bartock.lakedata.controller;
 
+import java.util.Collections;
 import java.util.List;
 
 import javax.validation.Valid;
@@ -28,11 +29,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
+import lombok.extern.slf4j.Slf4j;
 
 @RestController
 @RequestMapping("/api/location")
+@Slf4j
 public class LocationController extends AbstractRestController {
 
     @Autowired
@@ -41,20 +42,22 @@ public class LocationController extends AbstractRestController {
     private MeasurementService measurementService;
 
     @GetMapping
-    @Operation(summary = "Get all locations")
-    @IsAdmin
-    public List<LocationDto> findAll() {
-        return locationService.getAllLocations();
+    @IsMeasurementProvider
+    public List<LocationDto> findAll(Authentication authentication) {
+        ApplicationUserDto currentUser = (ApplicationUserDto) authentication.getPrincipal();
+        if (Role.ADMIN.equals(currentUser.getRole())) {
+            return locationService.getAllLocations();
+        } else {
+            return currentUser.getAllowedLocation() != null ? List.of(currentUser.getAllowedLocation())
+                    : Collections.EMPTY_LIST;
+        }
     }
 
     @GetMapping(value = "/{id}")
-    @Operation(summary = "Get a location by its identifier")
     @IsMeasurementProvider
-    public LocationDto findById(
-            @PathVariable("id") @Parameter(description = "identifier of location to be searched") String id,
-            Authentication authentication) {
+    public LocationDto findById(@PathVariable("id") String id, Authentication authentication) {
         if (hasRightsForLocation(id, authentication)) {
-            return locationService.getLocation(id);
+            return locationService.getLocationWithMeasurements(id);
         }
         throw new UnauthorizedException();
     }
@@ -67,39 +70,34 @@ public class LocationController extends AbstractRestController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    @Operation(summary = "Create a new location")
     @IsAdmin
     public LocationDto create(@RequestBody @Valid LocationDto location) {
+        log.info("Requested to create location '{}'", location);
         return Preconditions.checkNotNull(locationService.saveLocation(location));
     }
 
     @PutMapping(value = "/{id}")
     @ResponseStatus(HttpStatus.OK)
-    @Operation(summary = "Update existing location with provided identifier")
     @IsAdmin
-    public void update(@PathVariable("id") @Parameter(description = "identifier of location to be searched") String id,
-            @RequestBody @Valid LocationDto location) {
+    public void update(@PathVariable("id") String id, @RequestBody @Valid LocationDto location) {
         verifyExistence(id);
+        log.info("Requested to update location with id {} to '{}'", id, location);
         locationService.saveLocation(location);
     }
 
     @DeleteMapping(value = "/{id}")
     @ResponseStatus(HttpStatus.OK)
-    @Operation(summary = "Delete a location and its measurements by its identifier")
     @IsAdmin
-    public void delete(
-            @PathVariable("id") @Parameter(description = "identifier of location to be searched") String id) {
+    public void delete(@PathVariable("id") String id) {
         verifyExistence(id);
+        log.info("Requested to delete location with id {}", id);
         locationService.deleteLocation(id);
     }
 
     // Measurements
     @GetMapping(value = "/{id}/measurement")
-    @Operation(summary = "Get all measurements from location with provided identifier")
     @IsMeasurementProvider
-    public List<MeasurementDto> getMeasurements(
-            @PathVariable("id") @Parameter(description = "identifier of location to be searched") String id,
-            Authentication authentication) {
+    public List<MeasurementDto> getMeasurements(@PathVariable("id") String id, Authentication authentication) {
         verifyExistence(id);
         if (hasRightsForLocation(id, authentication)) {
             return measurementService.getAllMeasurementsByLocationId(id);
@@ -110,13 +108,12 @@ public class LocationController extends AbstractRestController {
 
     @PostMapping(value = "/{id}/measurement")
     @ResponseStatus(HttpStatus.OK)
-    @Operation(summary = "Create measurement for location with provided identifier")
     @IsMeasurementProvider
-    public MeasurementDto createMeasurement(
-            @PathVariable("id") @Parameter(description = "identifier of location to be searched") String id,
+    public MeasurementDto createMeasurement(@PathVariable("id") String id,
             @RequestBody @Valid MeasurementDto measurement, Authentication authentication) {
         verifyExistence(id);
         if (hasRightsForLocation(id, authentication)) {
+            log.info("Requested to add measurement '{}' to location with id {}", measurement, id);
             measurement.setLocation(locationService.getLocation(id));
             return measurementService.saveMeasurement(measurement);
 

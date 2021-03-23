@@ -12,6 +12,9 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 public abstract class AbstractRestController {
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)
@@ -19,6 +22,7 @@ public abstract class AbstractRestController {
     protected Map<String, List<FieldError>> handleValidationExceptions(MethodArgumentNotValidException ex) {
         Map<String, List<FieldError>> result = new HashMap<>();
         result.put("fieldValidationErrors", ex.getBindingResult().getFieldErrors());
+        log.error("Returning 400, caused by", ex);
 
         return result;
     }
@@ -29,6 +33,7 @@ public abstract class AbstractRestController {
         Map<String, String> result = new HashMap<>();
         result.put("errors", ex.getMessage());
 
+        log.error("Returning 400, caused by", ex);
         return result;
     }
 
@@ -37,6 +42,7 @@ public abstract class AbstractRestController {
     protected Map<String, String> handleUnauthorizedExceptions(Exception ex) {
         Map<String, String> result = new HashMap<>();
         result.put("error", ex.getMessage());
+        log.error("Returning 401, caused by", ex);
 
         return result;
     }
